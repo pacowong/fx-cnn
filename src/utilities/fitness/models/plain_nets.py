@@ -23,6 +23,14 @@ class Model(nn.Module):
             if self.fcn_layers:
                 self.fcn_layers = nn.DataParallel(self.fcn_layers).cuda()
 
+    def show_parameters(self):
+        for q_name, q_params in self.conv_layers.named_parameters():
+            print(q_name)
+            print(q_params.data)
+        for q_name, q_params in self.fcn_layers.named_parameters():
+            print(q_name)
+            print(q_params.data)
+            
     def set_conv(self, conv_layers):
         # (output, kernel, padding, stride, pool?)
         conv = collections.OrderedDict()
@@ -81,7 +89,7 @@ class ConvModel(Model):
         super(ConvModel, self).__init__(fcn_layers, conv_layers)
 
     def forward(self, x):
-        x = x.view(x.size(0), x.size(3), x.size(1), x.size(2))
+        x = x.permute(0,3,1,2)
         x = self.conv_layers(x)
         x = x.view(x.size(0), -1)
         x = self.fcn_layers(x)
